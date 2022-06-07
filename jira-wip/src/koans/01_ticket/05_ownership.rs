@@ -64,7 +64,7 @@ impl Ticket {
     /// and its rules.
     /// To read more on ownership check:
     /// https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html
-    pub fn title(&self) -> &String {
+    pub fn title(&self) -> &str {
         /// We are returning an immutable reference (&) to our title field.
         /// This will allow us to access this field without being able to mutate it:
         /// encapsulation is guaranteed and we can rest assured that our invariants
@@ -75,12 +75,12 @@ impl Ticket {
     /// Replace __ with the proper types to get accessor methods for the other two fields.
     /// If you are asking yourself why we are returning &str instead of &String, check out:
     /// https://blog.thoughtram.io/string-vs-str-in-rust/
-    pub fn description(__) -> __ {
-        todo!()
+    pub fn description(&self) -> &str {
+        &self.description
     }
 
-    pub fn status(__) -> __ {
-       todo!()
+    pub fn status(&self) -> &Status {
+       &self.status
     }
 }
 

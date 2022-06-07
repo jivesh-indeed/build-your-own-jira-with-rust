@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_doc_comments)]
+extern crate core;
+
 use directories::ProjectDirs;
 use std::error::Error;
 use std::path::PathBuf;
