@@ -28,13 +28,17 @@ use super::id_generation::TicketId;
 use std::error::Error;
 use std::str::FromStr;
 use std::fmt::Formatter;
+use crate::path_to_enlightenment::store_recap;
 
 #[derive(structopt::StructOpt, Clone)]
 /// A small command-line interface to interact with a toy Jira clone, IronJira.
 pub enum Command {
     /// Create a ticket on your board.
     Create {
-        __
+        #[structopt(long)]
+        title: Option<TicketTitle>,
+        #[structopt(long)]
+        description: Option<TicketDescription>
     },
     /// Edit the details of an existing ticket.
     Edit {
@@ -53,10 +57,13 @@ pub enum Command {
     },
     /// Delete a ticket from the store passing the ticket id.
     Delete {
-        __
+        #[structopt(long)]
+        id: TicketId,
     },
     /// List all existing tickets.
     List,
+    /// Quit and save the ticket store.
+    Quit,
 }
 
 /// `structopt` relies on `FromStr` to know how to parse our custom structs and enums
@@ -68,16 +75,30 @@ impl FromStr for Status {
     type Err = ParsingError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        __
+        match s {
+            "ToDo" => Ok(Status::ToDo),
+            "InProgress" => Ok(Status::InProgress),
+            "Blocked" => Ok(Status::Blocked),
+            "Done" => Ok(Status::Done),
+            _ => Err(ParsingError("Invalid status".to_string())),
+        }
     }
 }
 
 impl FromStr for TicketTitle {
-    __
+    type Err = ParsingError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        TicketTitle::new(s.to_string()).map_err(make_parsing_error)
+    }
 }
 
 impl FromStr for TicketDescription {
-    __
+    type Err = ParsingError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        TicketDescription::new(s.to_string()).map_err(make_parsing_error)
+    }
 }
 
 /// Our error struct for parsing failures.
@@ -92,6 +113,10 @@ impl std::fmt::Display for ParsingError {
     }
 }
 
+fn make_parsing_error(e: store_recap::ValidationError) -> ParsingError {
+    ParsingError(e.to_string())
+}
+
 /// The core function: given a mutable reference to a `TicketStore` and a `Command`,
 /// carry out the action specified by the user.
 /// We use `Box<dyn Error>` to avoid having to specify the exact failure modes of our
@@ -104,7 +129,15 @@ impl std::fmt::Display for ParsingError {
 pub fn handle_command(ticket_store: &mut TicketStore, command: Command) -> Result<(), Box<dyn Error>> {
     match command {
         Command::Create { description, title } => {
-            todo!()
+            if let (Some(new_title), Some(new_description)) = (title, description) {
+                let draft = TicketDraft {
+                    title: new_title,
+                    description: new_description,
+                };
+                ticket_store.save(draft);
+            } else {
+                println!("Both title and description must be provided");
+            };
         }
         Command::Edit {
             id,
@@ -112,21 +145,30 @@ pub fn handle_command(ticket_store: &mut TicketStore, command: Command) -> Resul
             description,
             status,
         } => {
-            todo!()
+            let patch = TicketPatch {
+                title,
+                description,
+                status
+            };
+            ticket_store.update(&id, patch);
         }
-        Command::Delete { ticket_id } => match ticket_store.delete(&ticket_id) {
+        Command::Delete { id } => match ticket_store.delete(&id) {
             Some(deleted_ticket) => println!(
                 "The following ticket has been deleted:\n{:?}",
                 deleted_ticket
             ),
             None => println!(
                 "There was no ticket associated to the ticket id {:?}",
-                ticket_id
+                id
             ),
         },
         Command::List => {
-            todo!()
-        }
+            let tickets = ticket_store.list();
+            for ticket in tickets {
+                println!("{ticket:?}");
+            }
+        },
+        Command::Quit => {}
     }
     Ok(())
 }

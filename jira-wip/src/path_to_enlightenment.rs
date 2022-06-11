@@ -47,3 +47,18 @@ mod result;
 #[path = "koans/02_ticket_store/07_vec.rs"]
 mod vec;
 
+#[path = "koans/02_ticket_store/08_delete_and_update.rs"]
+mod delete_and_update;
+
+#[path = "koans/02_ticket_store/09_store_recap.rs"]
+pub(crate) mod store_recap;
+
+#[path = "koans/03_cli/00_cli.rs"]
+pub(crate) mod cli;
+
+#[path = "koans/03_cli/01_persistence.rs"]
+pub(crate) mod persistence;
+
+#[path = "koans/03_cli/02_the_end.rs"]
+mod the_end;
+
